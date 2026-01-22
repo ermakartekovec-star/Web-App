@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌌 КОСМИЧЕСКАЯ ИМПЕРИЯ | Telegram MMO</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --tg-bg: var(--tg-theme-bg-color, #0f0f23);
+            --tg-text: var(--tg-theme-text-color, #00ff00);
+            --tg-accent: var(--tg-theme-button-color, #8a2be2);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            background: var(--tg-bg);
+            color: var(--tg-text);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(100, 0, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 200, 0.1) 0%, transparent 20%);
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 100%;
+            padding: 15px;
+            position: relative;
+        }
+        
+        .hud {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(0, 20, 40, 0.7);
+            border-radius: 10px;
+            border: 1px solid #00aaff;
+        }
+        
+        .hud-item {
+            text-align: center;
+            padding: 8px;
+            background: rgba(0, 40, 80, 0.5);
+            border-radius: 8px;
+            border: 1px solid #0088cc;
+        }
+        
+        .resource-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ffcc;
+            text-shadow: 0 0 10px #00ffcc;
+        }
+        
+        .tab-container {
+            display: flex;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            gap: 5px;
+        }
+        
+        .tab {
+            padding: 10px 15px;
+            background: rgba(0, 30, 60, 0.6);
+            border: 1px solid #0055aa;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: var(--tg-accent);
+            border-color: #ff00ff;
+            box-shadow: 0 0 15px var(--tg-accent);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .galaxy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .planet {
+            background: linear-gradient(135deg, #1a1a3a, #0a0a2a);
+            border: 2px solid #4444aa;
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .planet::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, transparent 30%, rgba(255,255,255,0.1) 70%);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        
+        .planet:hover::before {
+            opacity: 1;
+        }
+        
+        .planet.owned {
+            border-color: #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+        
+        .planet.enemy {
+            border-color: #ff0000;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+        }
+        
+        .planet-level {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .button {
+            background: linear-gradient(135deg, var(--tg-accent), #6a11cb);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4);
+        }
+        
+        .button:active {
+            transform: translateY(0);
+        }
+        
+        .upgrade-item {
+            background: rgba(0, 20, 40, 0.7);
+            border: 1px solid #0088cc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .rankings {
+            background: rgba(0, 10, 30, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid rgba(0, 150, 255, 0.3);
+        }
+        
+        .ranking-item.you {
+            background: rgba(0, 100, 255, 0.2);
+            border-left: 4px solid #00ff00;
+        }
+        
+        .battle-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+            padding: 10px;
+            background: rgba(0, 0, 30, 0.7);
+            border-radius: 10px;
+        }
+        
+        .cell {
+            aspect-ratio: 1;
+            background: rgba(0, 50, 100, 0.5);
+            border: 1px solid #00aaff;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .cell.ship {
+            background: radial-gradient(circle, #00ff00 30%, transparent 70%);
+            box-shadow: 0 0 10px #00ff00;
+        }
+        
+        .cell.enemy {
+            background: radial-gradient(circle, #ff0000 30%, transparent 70%);
+            box-shadow: 0 0 10px #ff0000;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 40, 80, 0.95);
+            border: 2px solid #00ffcc;
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            z-index: 1000;
+            animation: slideIn 0.5s;
+            max-width: 300px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--tg-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .progress-bar {
+            width: 80%;
+            height: 20px;
+            background: rgba(0, 50, 100, 0.5);
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ffcc, #0088ff);
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <!-- Прелоадер -->
+    <div class="preloader" id="preloader">
+        <h1 style="color: #00ffcc; margin-bottom: 20px;">🌌 КОСМИЧЕСКАЯ ИМПЕРИЯ</h1>
+        <div>Загрузка вселенной...</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <!-- Основной интерфейс -->
+    <div class="container" id="gameContainer" style="display: none;">
+        <!-- ХАБ -->
+        <div class="hud">
+            <div class="hud-item">
+                <div>⚡ ЭНЕРГИЯ</div>
+                <div class="resource-value" id="energy">0</div>
+            </div>
+            <div class="hud-item">
+                <div>🔮 МАТЕРИЯ</div>
+                <div class="resource-value" id="matter">0</div>
+            </div>
+            <div class="hud-item">
+                <div>💎 КРИСТАЛЛЫ</div>
+                <div class="resource-value" id="crystals">0</div>
+            </div>
+            <div class="hud-item">
+                <div>🏆 ОЧКИ</div>
+                <div class="resource-value" id="score">0</div>
+            </div>
+        </div>
+        
+        <!-- Вкладки -->
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('galaxy')">🌌 ГАЛАКТИКА</div>
+            <div class="tab" onclick="switchTab('fleet')">🚀 ФЛОТ</div>
+            <div class="tab" onclick="switchTab('tech')">🔬 ТЕХНОЛОГИИ</div>
+            <div class="tab" onclick="switchTab('battle')">⚔️ БИТВА</div>
+            <div class="tab" onclick="switchTab('rankings')">🏆 РЕЙТИНГ</div>
+            <div class="tab" onclick="switchTab('alliance')">🤝 АЛЬЯНС</div>
+        </div>
+        
+        <!-- Контент вкладок -->
+        <div id="tabContent">
+            <!-- ГАЛАКТИКА -->
+            <div class="tab-content active" id="galaxyTab">
+                <h2 style="color: #00ffcc; margin-bottom: 15px;">🌌 ГАЛАКТИЧЕСКАЯ КАРТА</h2>
+                <button class="button pulse" onclick="collectAllResources()">⚡ СОБРАТЬ РЕСУРСЫ</button>
+                <div class="galaxy-grid" id="galaxyGrid"></div>
+            </div>
+            
+            <!-- ФЛОТ -->
+            <div class="tab-content" id="fleetTab">
+                <h2 style="color: #00ffcc; margin-bottom: 15px;">🚀 ВАШ ФЛОТ</h2>
+                <div id="fleetInfo"></div>
+                <button class="button" onclick="buildShip('fighter')">🛸 Построить Истребитель (100 энергии)</button>
+                <button class="button" onclick="buildShip('cruiser')">🚀 Построить Крейсер (500 энергии)</button>
+                <button class="button" onclick="buildShip('battleship')">🛰️ Построить Линкор (2000 энергии)</button>
+            </div>
+            
+            <!-- ТЕХНОЛОГИИ -->
+            <div class="tab-content" id="techTab">
+                <h2 style="color: #00ffcc; margin-bottom: 15px;">🔬 ДРЕВО ТЕХНОЛОГИЙ</h2>
+                <div id="techTree"></div>
+            </div>
+            
+            <!-- БИТВА -->
+            <div class="tab-content" id="battleTab">
+                <h2 style="color: #00ffcc; margin-bottom: 15px;">⚔️ ТАКТИЧЕСКАЯ БИТВА</h2>
+                <div>Противник: <span id="enemyName">Загрузка...</span></div>
+                <div class="battle-grid" id="battleGrid"></div>
+                <button class="button pulse" onclick="startBattle()">🎯 НАЧАТЬ БИТВУ</button>
+                <div id="battleLog" style="margin-top: 15px; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+            
+            <!-- РЕЙТИНГ -->
+            <div class="tab-content" id="rankingsTab">
+                <h2 style="color: #00ffcc; margin-bottom: 15px;">🏆 ГЛОБАЛЬНЫЙ РЕЙТИНГ</h2>
+                <div class="rankings" id="rankingsList"></div>
+                <button class="button" onclick="saveToCloud()">💾 СОХРАНИТЬ В ОБЛАКО</button>
+                <button class="button" onclick="loadFromCloud()">🔄 ЗАГРУЗИТЬ ИЗ ОБЛАКА</button>
+            </div>
+            
+            <!-- АЛЬЯНС -->
+            <div class="tab-content" id="allianceTab">
+                <h2 style="color: #00ffcc; margin-bottom: 15px;">🤝 КОСМИЧЕСКИЕ АЛЬЯНСЫ</h2>
+                <div id="allianceInfo"></div>
+                <button class="button" onclick="createAlliance()">✨ СОЗДАТЬ АЛЬЯНС (1000 кристаллов)</button>
+                <button class="button" onclick="joinAlliance()">➕ ВСТУПИТЬ В АЛЬЯНС</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================= КОНФИГУРАЦИЯ =================
+        const GOOGLE_DRIVE_CONFIG = {
+            CLIENT_ID: 'YOUR_CLIENT_ID', // Замените на свой Client ID
+            API_KEY: 'YOUR_API_KEY',     // Замените на свой API Key
+            DISCOVERY_DOCS: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+            SCOPES: 'https://www.googleapis.com/auth/drive.file',
+            FOLDER_NAME: 'CosmicEmpire_GameData',
+            FILE_NAME: 'cosmic_empire_data.json'
+        };
+
+        // ================= ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =================
+        let gameData = {
+            players: {},           // Данные всех игроков
+            alliances: {},         // Альянсы
+            galaxy: [],           // Планеты галактики
+            lastUpdate: Date.now()
+        };
+        
+        let currentPlayer = {
+            id: '',
+            name: '',
+            resources: {
+                energy: 100,
+                matter: 50,
+                crystals: 10,
+                score: 0
+            },
+            fleet: {
+                fighters: 5,
+                cruisers: 0,
+                battleships: 0
+            },
+            technologies: [],
+            planets: [],
+            alliance: null,
+            lastBattle: 0
+        };
+        
+        let gapiInited = false;
+        let gisInited = false;
+        let authToken = null;
+
+        // ================= ИНИЦИАЛИЗАЦИЯ ИГРЫ =================
+        document.addEventListener('DOMContentLoaded', async () => {
+            updateProgress(10);
+            
+            // Генерация ID игрока из Telegram или случайный
+            if (window.Telegram && Telegram.WebApp.initDataUnsafe.user) {
+                const tgUser = Telegram.WebApp.initDataUnsafe.user;
+                currentPlayer.id = `tg_${tgUser.id}`;
+                currentPlayer.name = tgUser.first_name || `Космонавт_${Math.floor(Math.random() * 1000)}`;
+            } else {
+                currentPlayer.id = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                currentPlayer.name = `Игрок_${Math.floor(Math.random() * 10000)}`;
+            }
+            
+            updateProgress(30);
+            
+            // Инициализация галактики
+            initializeGalaxy();
+            updateProgress(50);
+            
+            // Загрузка облачных данных
+            await initGoogleDrive();
+            updateProgress(80);
+            
+            // Загрузка сохранений игрока
+            loadPlayerData();
+            updateProgress(100);
+            
+            // Запуск игровых циклов
+            setTimeout(() => {
+                document.getElementById('preloader').style.display = 'none';
+                document.getElementById('gameContainer').style.display = 'block';
+                startGameLoops();
+            }, 500);
+        });
+
+        function updateProgress(percent) {
+            document.getElementById('progressFill').style.width = percent + '%';
+        }
+
+        // ================= GOOGLE DRIVE API =================
+        async function initGoogleDrive() {
+            try {
+                // Загрузка Google API
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://apis.google.com/js/api.js';
+                    script.onload = () => resolve();
+                    script.onerror = () => reject(new Error('Failed to load Google API'));
+                    document.head.appendChild(script);
+                });
+                
+                // Инициализация gapi
+                await new Promise((resolve) => {
+                    gapi.load('client', async () => {
+                        try {
+                            await gapi.client.init({
+                                apiKey: GOOGLE_DRIVE_CONFIG.API_KEY,
+                                discoveryDocs: GOOGLE_DRIVE_CONFIG.DISCOVERY_DOCS,
+                            });
+                            gapiInited = true;
+                            console.log('Google API инициализирован');
+                        } catch (error) {
+                            console.error('Ошибка инициализации Google API:', error);
+                        }
+                        resolve();
+                    });
+                });
+                
+                // Авторизация
+                await handleAuthClick();
+                
+            } catch (error) {
+                console.error('Ошибка инициализации Google Drive:', error);
+                showNotification('⚠️ Облако недоступно. Используем локальное хранилище.');
+            }
+        }
+
+        async function handleAuthClick() {
+            const tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: GOOGLE_DRIVE_CONFIG.CLIENT_ID,
+                scope: GOOGLE_DRIVE_CONFIG.SCOPES,
+                callback: (response) => {
+                    if (response.error) {
+                        console.error('Ошибка авторизации:', response);
+                        return;
+                    }
+                    authToken = response.access_token;
+                    gisInited = true;
+                    console.log('Авторизация успешна');
+                    loadGameDataFromDrive();
+                },
+            });
+            tokenClient.requestAccessToken({ prompt: 'consent' });
+        }
+
+        async function ensureGameFolder() {
+            try {
+                // Поиск папки
+                const response = await gapi.client.drive.files.list({
+                    q: `name='${GOOGLE_DRIVE_CONFIG.FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+                    fields: 'files(id, name)'
+                });
+                
+                let folderId;
+                if (response.result.files.length > 0) {
+                    folderId = response.result.files[0].id;
+                } else {
+                    // Создание папки
+                    const folderMetadata = {
+                        name: GOOGLE_DRIVE_CONFIG.FOLDER_NAME,
+                        mimeType: 'application/vnd.google-apps.folder'
+                    };
+                    
+                    const folderResponse = await gapi.client.drive.files.create({
+                        resource: folderMetadata,
+                        fields: 'id'
+                    });
+                    
+                    folderId = folderResponse.result.id;
+                    console.log('Папка создана:', folderId);
+                }
+                
+                return folderId;
+            } catch (error) {
+                console.error('Ошибка создания папки:', error);
+                throw error;
+            }
+        }
+
+        async function saveToCloud() {
+            try {
+                if (!gapiInited || !gisInited) {
+                    throw new Error('Google Drive не инициализирован');
+                }
+                
+                showNotification('💾 Сохранение в облако...');
+                
+                // Обновляем данные текущего игрока в общем хранилище
+                gameData.players[currentPlayer.id] = {
+                    ...currentPlayer,
+                    lastSave: Date.now()
+                };
+                
+                // Ищем файл
+                const folderId = await ensureGameFolder();
+                const searchResponse = await gapi.client.drive.files.list({
+                    q: `name='${GOOGLE_DRIVE_CONFIG.FILE_NAME}' and '${folderId}' in parents and trashed=false`,
+                    fields: 'files(id, name)'
+                });
+                
+                let fileId;
+                if (searchResponse.result.files.length > 0) {
+                    fileId = searchResponse.result.files[0].id;
+                    
+                    // Обновляем существующий файл
+                    await gapi.client.drive.files.update({
+                        fileId: fileId,
+                        media: {
+                            mimeType: 'application/json',
+                            body: JSON.stringify(gameData, null, 2)
+                        }
+                    });
+                } else {
+                    // Создаем новый файл
+                    const fileMetadata = {
+                        name: GOOGLE_DRIVE_CONFIG.FILE_NAME,
+                        parents: [folderId]
+                    };
+                    
+                    const createResponse = await gapi.client.drive.files.create({
+                        resource: fileMetadata,
+                        media: {
+                            mimeType: 'application/json',
+                            body: JSON.stringify(gameData, null, 2)
+                        },
+                        fields: 'id'
+                    });
+                    
+                    fileId = createResponse.result.id;
+                }
+                
+                showNotification('✅ Данные сохранены в облако!');
+                updateRankings();
+                
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+                showNotification('❌ Ошибка сохранения в облако');
+            }
+        }
+
+        async function loadFromCloud() {
+            try {
+                if (!gapiInited || !gisInited) {
+                    throw new Error('Google Drive не инициализирован');
+                }
+                
+                showNotification('🔄 Загрузка из облака...');
+                
+                const folderId = await ensureGameFolder();
+                const searchResponse = await gapi.client.drive.files.list({
+                    q: `name='${GOOGLE_DRIVE_CONFIG.FILE_NAME}' and '${folderId}' in parents and trashed=false`,
+                    fields: 'files(id, name)'
+                });
+                
+                if (searchResponse.result.files.length === 0) {
+                    showNotification('📁 Файл с данными не найден');
+                    return;
+                }
+                
+                const fileId = searchResponse.result.files[0].id;
+                const fileResponse = await gapi.client.drive.files.get({
+                    fileId: fileId,
+                    alt: 'media'
+                });
+                
+                // Загружаем общие данные
+                gameData = fileResponse.result;
+                
+                // Загружаем данные текущего игрока, если они есть
+                if (gameData.players[currentPlayer.id]) {
+                    const savedData = gameData.players[currentPlayer.id];
+                    currentPlayer = {
+                        ...currentPlayer,
+                        ...savedData,
+                        id: currentPlayer.id, // Сохраняем текущий ID
+                        name: currentPlayer.name // Сохраняем текущее имя
+                    };
+                    savePlayerData();
+                }
+                
+                showNotification('✅ Данные загружены из облака!');
+                updateUI();
+                updateRankings();
+                
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                showNotification('❌ Ошибка загрузки из облака');
+            }
+        }
+
+        async function loadGameDataFromDrive() {
+            try {
+                await loadFromCloud();
+            } catch (error) {
+                console.log('Создаем новую вселенную...');
+                // Инициализируем пустые данные
+                gameData = {
+                    players: {},
+                    alliances: {},
+                    galaxy: generateGalaxy(),
+                    lastUpdate: Date.now()
+                };
+            }
+        }
+
+        // ================= ИГРОВАЯ ЛОГИКА =================
+        function initializeGalaxy() {
+            if (!gameData.galaxy || gameData.galaxy.length === 0) {
+                gameData.galaxy = generateGalaxy();
+            }
+            renderGalaxy();
+        }
+
+        function generateGalaxy() {
+            const planets = [];
+            const types = ['Ледяной', 'Пустынный', 'Океанический', 'Вулканический', 'Газовый гигант', 'Тропический'];
+            
+            for (let i = 1; i <= 20; i++) {
+                const type = types[Math.floor(Math.random() * types.length)];
+                const owner = Math.random() > 0.7 ? 'enemy' : 'neutral';
+                const resources = {
+                    energy: Math.floor(Math.random() * 1000) + 100,
+                    matter: Math.floor(Math.random() * 500) + 50,
+                    crystals: Math.floor(Math.random() * 50) + 5
+                };
+                
+                planets.push({
+                    id: i,
+                    name: `${type} мир #${i}`,
+                    type: type,
+                    level: Math.floor(Math.random() * 10) + 1,
+                    resources: resources,
+                    owner: owner,
+                    lastCollected: 0
+                });
+            }
+            
+            // Добавляем стартовую планету игрока
+            planets[0] = {
+                id: 0,
+                name: '🏠 Домашний мир',
+                type: 'Родной',
+                level: 1,
+                resources: { energy: 1000, matter: 500, crystals: 100 },
+                owner: 'player',
+                lastCollected: Date.now()
+            };
+            
+            return planets;
+        }
+
+        function renderGalaxy() {
+            const grid = document.getElementById('galaxyGrid');
+            grid.innerHTML = '';
+            
+            gameData.galaxy.forEach(planet => {
+                const planetDiv = document.createElement('div');
+                planetDiv.className = `planet ${planet.owner}`;
+                planetDiv.innerHTML = `
+                    <div class="planet-level">🪐</div>
+                    <div><strong>${planet.name}</strong></div>
+                    <div>Ур. ${planet.level}</div>
+                    <div>${planet.owner === 'player' ? '✅ Ваша' : planet.owner === 'enemy' ? '⚠️ Вражеская' : '⚪ Нейтральная'}</div>
+                `;
+                
+                planetDiv.onclick = () => interactWithPlanet(planet.id);
+                grid.appendChild(planetDiv);
+            });
+        }
+
+        function interactWithPlanet(planetId) {
+            const planet = gameData.galaxy.find(p => p.id === planetId);
+            
+            if (planet.owner === 'player') {
+                collectResources(planetId);
+            } else if (planet.owner === 'neutral') {
+                if (confirm(`Захватить планету "${planet.name}"?`)) {
+                    capturePlanet(planetId);
+                }
+            } else {
+                if (confirm(`Атаковать вражескую планету "${planet.name}"?`)) {
+                    prepareBattle(planet);
+                }
+            }
+        }
+
+        function collectResources(planetId) {
+            const planet = gameData.galaxy.find(p => p.id === planetId);
+            const now = Date.now();
+            const timePassed = Math.floor((now - planet.lastCollected) / 60000); // минуты
+            
+            if (timePassed < 5) {
+                showNotification(`⏳ Ресурсы еще не восстановились! Ждите ${5 - timePassed} мин.`);
+                return;
+            }
+            
+            currentPlayer.resources.energy += planet.resources.energy;
+            currentPlayer.resources.matter += planet.resources.matter;
+            currentPlayer.resources.crystals += Math.floor(planet.resources.crystals * 0.1);
+            planet.lastCollected = now;
+            
+            showNotification(`📦 Собрано с ${planet.name}: +${planet.resources.energy}⚡ +${planet.resources.matter}🔮`);
+            updateUI();
+            savePlayerData();
+        }
+
+        function collectAllResources() {
+            const playerPlanets = gameData.galaxy.filter(p => p.owner === 'player');
+            let total = { energy: 0, matter: 0, crystals: 0 };
+            
+            playerPlanets.forEach(planet => {
+                const now = Date.now();
+                const timePassed = Math.floor((now - planet.lastCollected) / 60000);
+                
+                if (timePassed >= 5) {
+                    total.energy += planet.resources.energy;
+                    total.matter += planet.resources.matter;
+                    total.crystals += Math.floor(planet.resources.crystals * 0.1);
+                    planet.lastCollected = now;
+                }
+            });
+            
+            if (total.energy > 0) {
+                currentPlayer.resources.energy += total.energy;
+                currentPlayer.resources.matter += total.matter;
+                currentPlayer.resources.crystals += total.crystals;
+                
+                showNotification(`📦 Собрано со всех планет: +${total.energy}⚡ +${total.matter}🔮 +${total.crystals}💎`);
+                updateUI();
+                savePlayerData();
+            } else {
+                showNotification('⏳ Ресурсы еще не восстановились!');
+            }
+        }
+
+        function capturePlanet(planetId) {
+            const planet = gameData.galaxy.find(p => p.id === planetId);
+            
+            if (currentPlayer.fleet.fighters < 3) {
+                showNotification('❌ Недостаточно флота! Нужно минимум 3 истребителя');
+                return;
+            }
+            
+            // Расход флота
+            const lostFighters = Math.max(1, Math.floor(Math.random() * 3));
+            currentPlayer.fleet.fighters -= lostFighters;
+            
+            // Захват планеты
+            planet.owner = 'player';
+            currentPlayer.planets.push(planetId);
+            currentPlayer.resources.score += planet.level * 100;
+            
+            showNotification(`✅ Планета "${planet.name}" захвачена! Потеряно: ${lostFighters} истребителей`);
+            updateUI();
+            renderGalaxy();
+            savePlayerData();
+        }
+
+        // ================= БИТВА =================
+        function prepareBattle(planet) {
+            currentBattle = {
+                enemy: planet,
+                playerShips: [...Array(currentPlayer.fleet.fighters).fill('fighter')],
+                enemyShips: [...Array(Math.floor(Math.random() * 5) + 3).fill('enemy')],
+                grid: Array(25).fill(null),
+                playerTurn: true
+            };
+            
+            document.getElementById('enemyName').textContent = planet.name;
+            renderBattleGrid();
+            switchTab('battle');
+        }
+
+        function renderBattleGrid() {
+            const grid = document.getElementById('battleGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                
+                if (currentBattle.grid[i]) {
+                    cell.className += ` ${currentBattle.grid[i]}`;
+                }
+                
+                cell.onclick = () => makeMove(i);
+                grid.appendChild(cell);
+            }
+        }
+
+        function makeMove(index) {
+            if (!currentBattle.playerTurn || currentBattle.grid[index]) return;
+            
+            // Игрок ставит корабль
+            if (currentBattle.playerShips.length > 0) {
+                currentBattle.grid[index] = 'ship';
+                currentBattle.playerShips.pop();
+                
+                // Ход врага
+                currentBattle.playerTurn = false;
+                setTimeout(enemyMove, 500);
+            }
+            
+            renderBattleGrid();
+            checkBattleEnd();
+        }
+
+        function enemyMove() {
+            const emptyCells = currentBattle.grid
+                .map((cell, index) => cell === null ? index : -1)
+                .filter(index => index !== -1);
+            
+            if (emptyCells.length > 0 && currentBattle.enemyShips.length > 0) {
+                const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                currentBattle.grid[randomIndex] = 'enemy';
+                currentBattle.enemyShips.pop();
+            }
+            
+            currentBattle.playerTurn = true;
+            renderBattleGrid();
+            checkBattleEnd();
+        }
+
+        function checkBattleEnd() {
+            if (currentBattle.playerShips.length === 0 && currentBattle.enemyShips.length === 0) {
+                // Подсчет результатов
+                const playerShips = currentBattle.grid.filter(cell => cell === 'ship').length;
+                const enemyShips = currentBattle.grid.filter(cell => cell === 'enemy').length;
+                
+                let message = '';
+                if (playerShips > enemyShips) {
+                    message = `🎉 ПОБЕДА! Вы захватили планету!`;
+                    currentBattle.enemy.owner = 'player';
+                    currentPlayer.resources.score += 500;
+                } else if (enemyShips > playerShips) {
+                    message = `💀 ПОРАЖЕНИЕ! Вражеская планета устояла.`;
+                    // Потеря флота
+                    currentPlayer.fleet.fighters = Math.max(0, currentPlayer.fleet.fighters - 2);
+                } else {
+                    message = `🤝 НИЧЬЯ! Планета осталась нейтральной.`;
+                }
+                
+                showNotification(message);
+                updateUI();
+                savePlayerData();
+            }
+        }
+
+        function startBattle() {
+            if (!currentBattle) {
+                // Автоматический поиск врага
+                const enemyPlanets = gameData.galaxy.filter(p => p.owner === 'enemy');
+                if (enemyPlanets.length > 0) {
+                    prepareBattle(enemyPlanets[Math.floor(Math.random() * enemyPlanets.length)]);
+                } else {
+                    showNotification('🎉 Вражеских планет не осталось!');
+                }
+            }
+        }
+
+        // ================= КОРАБЛИ И ТЕХНОЛОГИИ =================
+        function buildShip(type) {
+            const costs = {
+                fighter: { energy: 100, matter: 50 },
+                cruiser: { energy: 500, matter: 200 },
+                battleship: { energy: 2000, matter: 1000 }
+            };
+            
+            const cost = costs[type];
+            
+            if (currentPlayer.resources.energy >= cost.energy && 
+                currentPlayer.resources.matter >= cost.matter) {
+                
+                currentPlayer.resources.energy -= cost.energy;
+                currentPlayer.resources.matter -= cost.matter;
+                currentPlayer.fleet[type + 's']++;
+                currentPlayer.resources.score += cost.energy / 10;
+                
+                showNotification(`✅ Построен ${getShipName(type)}!`);
+                updateUI();
+                savePlayerData();
+            } else {
+                showNotification(`❌ Недостаточно ресурсов!`);
+            }
+        }
+
+        function getShipName(type) {
+            const names = {
+                fighter: '🛸 Истребитель',
+                cruiser: '🚀 Крейсер',
+                battleship: '🛰️ Линкор'
+            };
+            return names[type] || type;
+        }
+
+        function renderTechTree() {
+            const techs = [
+                { id: 'mining', name: '📈 Улучшенная добыча', cost: 100, description: '+20% к добыче ресурсов' },
+                { id: 'fleet', name: '🚀 Улучшение флота', cost: 500, description: 'Корабли +10% к прочности' },
+                { id: 'warp', name: '🌀 Варп-двигатель', cost: 1000, description: 'Быстрые перемещения' },
+                { id: 'shield', name: '🛡️ Щиты планеты', cost: 2000, description: 'Защита от атак' },
+                { id: 'ai', name: '🤖 Боевой ИИ', cost: 5000, description: 'Автономные сражения' }
+            ];
+            
+            const container = document.getElementById('techTree');
+            container.innerHTML = '';
+            
+            techs.forEach(tech => {
+                const hasTech = currentPlayer.technologies.includes(tech.id);
+                const canAfford = currentPlayer.resources.crystals >= tech.cost;
+                
+                const div = document.createElement('div');
+                div.className = 'upgrade-item';
+                div.innerHTML = `
+                    <div>
+                        <strong>${tech.name}</strong><br>
+                        <small>${tech.description}</small>
+                    </div>
+                    <div>
+                        ${hasTech ? '✅ Исследовано' : 
+                          `<button onclick="researchTech('${tech.id}', ${tech.cost})" 
+                                   ${!canAfford ? 'disabled style="opacity:0.5"' : ''}
+                                   class="button" style="padding: 5px 10px; font-size: 12px;">
+                            🧪 Исследовать (${tech.cost}💎)
+                          </button>`}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function researchTech(techId, cost) {
+            if (currentPlayer.resources.crystals >= cost && !currentPlayer.technologies.includes(techId)) {
+                currentPlayer.resources.crystals -= cost;
+                currentPlayer.technologies.push(techId);
+                currentPlayer.resources.score += cost * 10;
+                
+                // Применяем эффекты технологий
+                applyTechEffect(techId);
+                
+                showNotification(`🔬 Технология исследована!`);
+                updateUI();
+                renderTechTree();
+                savePlayerData();
+            }
+        }
+
+        function applyTechEffect(techId) {
+            switch(techId) {
+                case 'mining':
+                    // Увеличиваем добычу на всех планетах
+                    gameData.galaxy.forEach(p => {
+                        if (p.owner === 'player') {
+                            p.resources.energy = Math.floor(p.resources.energy * 1.2);
+                            p.resources.matter = Math.floor(p.resources.matter * 1.2);
+                        }
+                    });
+                    break;
+                case 'fleet':
+                    // Бонус к флоту уже учтен в логике боя
+                    break;
+            }
+        }
+
+        // ================= РЕЙТИНГ И АЛЬЯНСЫ =================
+        function updateRankings() {
+            const rankingsDiv = document.getElementById('rankingsList');
+            if (!rankingsDiv) return;
+            
+            // Создаем массив игроков из gameData
+            const playersArray = Object.entries(gameData.players).map(([id, player]) => ({
+                id,
+                name: player.name,
+                score: player.resources?.score || 0,
+                planets: player.planets?.length || 0,
+                lastActive: player.lastSave || 0
+            }));
+            
+            // Сортируем по очкам
+            playersArray.sort((a, b) => b.score - a.score);
+            
+            // Ограничиваем топ-50
+            const topPlayers = playersArray.slice(0, 50);
+            
+            rankingsDiv.innerHTML = '';
+            
+            topPlayers.forEach((player, index) => {
+                const div = document.createElement('div');
+                div.className = `ranking-item ${player.id === currentPlayer.id ? 'you' : ''}`;
+                div.innerHTML = `
+                    <div>
+                        <strong>${index + 1}. ${player.name}</strong>
+                        ${player.id === currentPlayer.id ? ' (Вы)' : ''}
+                    </div>
+                    <div>
+                        🏆 ${player.score} | 🪐 ${player.planets}
+                    </div>
+                `;
+                rankingsDiv.appendChild(div);
+            });
+            
+            // Если игрока нет в топе, показываем его отдельно
+            if (!topPlayers.find(p => p.id === currentPlayer.id)) {
+                const player = playersArray.find(p => p.id === currentPlayer.id);
+                if (player) {
+                    const div = document.createElement('div');
+                    div.className = 'ranking-item you';
+                    div.innerHTML = `
+                        <div>
+                            <strong>???. ${player.name} (Вы)</strong>
+                        </div>
+                        <div>
+                            🏆 ${player.score} | 🪐 ${player.planets}
+                        </div>
+                    `;
+                    rankingsDiv.appendChild(div);
+                }
+            }
+        }
+
+        function createAlliance() {
+            if (currentPlayer.resources.crystals < 1000) {
+                showNotification('❌ Недостаточно кристаллов! Нужно 1000💎');
+                return;
+            }
+            
+            const allianceName = prompt('Введите название альянса:');
+            if (!allianceName || allianceName.trim() === '') return;
+            
+            const allianceId = `alliance_${Date.now()}`;
+            gameData.alliances[allianceId] = {
+                id: allianceId,
+                name: allianceName,
+                creator: currentPlayer.id,
+                members: [currentPlayer.id],
+                score: 0,
+                created: Date.now()
+            };
+            
+            currentPlayer.alliance = allianceId;
+            currentPlayer.resources.crystals -= 1000;
+            currentPlayer.resources.score += 5000;
+            
+            showNotification(`✅ Альянс "${allianceName}" создан!`);
+            updateUI();
+            savePlayerData();
+            saveToCloud();
+        }
+
+        function joinAlliance() {
+            const alliances = Object.values(gameData.alliances);
+            if (alliances.length === 0) {
+                showNotification('❌ Нет доступных альянсов');
+                return;
+            }
+            
+            const allianceList = alliances.map(a => `${a.name} (${a.members.length} игроков)`).join('\n');
+            const choice = prompt(`Выберите альянс для вступления:\n\n${allianceList}\n\nВведите номер альянса:`);
+            
+            // Простая логика выбора
+            const selectedAlliance = alliances[parseInt(choice) - 1];
+            if (selectedAlliance) {
+                selectedAlliance.members.push(currentPlayer.id);
+                currentPlayer.alliance = selectedAlliance.id;
+                showNotification(`✅ Вы вступили в альянс "${selectedAlliance.name}"!`);
+                savePlayerData();
+                saveToCloud();
+            }
+        }
+
+        // ================= УТИЛИТЫ =================
+        function switchTab(tabName) {
+            // Обновляем активные вкладки
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.querySelector(`.tab[onclick*="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+            
+            // Обновляем контент вкладок
+            if (tabName === 'rankings') {
+                updateRankings();
+            } else if (tabName === 'tech') {
+                renderTechTree();
+            } else if (tabName === 'fleet') {
+                updateFleetInfo();
+            } else if (tabName === 'alliance') {
+                updateAllianceInfo();
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('energy').textContent = Math.floor(currentPlayer.resources.energy);
+            document.getElementById('matter').textContent = Math.floor(currentPlayer.resources.matter);
+            document.getElementById('crystals').textContent = Math.floor(currentPlayer.resources.crystals);
+            document.getElementById('score').textContent = Math.floor(currentPlayer.resources.score);
+        }
+
+        function updateFleetInfo() {
+            const div = document.getElementById('fleetInfo');
+            div.innerHTML = `
+                <div class="upgrade-item">
+                    <div>🛸 Истребители</div>
+                    <div><strong>${currentPlayer.fleet.fighters}</strong></div>
+                </div>
+                <div class="upgrade-item">
+                    <div>🚀 Крейсеры</div>
+                    <div><strong>${currentPlayer.fleet.cruisers}</strong></div>
+                </div>
+                <div class="upgrade-item">
+                    <div>🛰️ Линкоры</div>
+                    <div><strong>${currentPlayer.fleet.battleships}</strong></div>
+                </div>
+            `;
+        }
+
+        function updateAllianceInfo() {
+            const div = document.getElementById('allianceInfo');
+            
+            if (currentPlayer.alliance && gameData.alliances[currentPlayer.alliance]) {
+                const alliance = gameData.alliances[currentPlayer.alliance];
+                div.innerHTML = `
+                    <div class="upgrade-item">
+                        <div><strong>${alliance.name}</strong></div>
+                        <div>👥 ${alliance.members.length} игроков</div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <strong>Участники:</strong><br>
+                        ${alliance.members.map(memberId => {
+                            const player = gameData.players[memberId];
+                            return player ? `• ${player.name}` : '• Неизвестный игрок';
+                        }).join('<br>')}
+                    </div>
+                `;
+            } else {
+                div.innerHTML = '<div class="upgrade-item">Вы не состоите в альянсе</div>';
+            }
+        }
+
+        function savePlayerData() {
+            // Сохраняем в localStorage как резерв
+            localStorage.setItem(`cosmic_empire_${currentPlayer.id}`, JSON.stringify(currentPlayer));
+        }
+
+        function loadPlayerData() {
+            const saved = localStorage.getItem(`cosmic_empire_${currentPlayer.id}`);
+            if (saved) {
+                const loaded = JSON.parse(saved);
+                // Объединяем с текущими данными, сохраняя ID и имя
+                currentPlayer = {
+                    ...loaded,
+                    id: currentPlayer.id,
+                    name: currentPlayer.name
+                };
+                console.log('Данные игрока загружены из localStorage');
+            }
+            updateUI();
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.5s reverse';
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        function startGameLoops() {
+            // Пассивный доход каждую минуту
+            setInterval(() => {
+                if (currentPlayer.technologies.includes('mining')) {
+                    currentPlayer.resources.energy += 10;
+                    currentPlayer.resources.matter += 5;
+                } else {
+                    currentPlayer.resources.energy += 5;
+                    currentPlayer.resources.matter += 2;
+                }
+                updateUI();
+            }, 60000);
+            
+            // Автосохранение каждые 2 минуты
+            setInterval(() => {
+                savePlayerData();
+                if (gapiInited && gisInited) {
+                    saveToCloud();
+                }
+            }, 120000);
+            
+            // Обновление рейтинга каждые 5 минут
+            setInterval(() => {
+                updateRankings();
+            }, 300000);
+        }
+    </script>
+</body>
+</html>
