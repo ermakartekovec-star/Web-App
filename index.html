@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Крутой калькулятор</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 20px;
+        }
+        
+        .calculator {
+            width: 100%;
+            max-width: 400px;
+            background-color: #222831;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            border: 1px solid #393e46;
+            transition: transform 0.3s ease;
+        }
+        
+        .calculator:hover {
+            transform: translateY(-5px);
+        }
+        
+        .display {
+            padding: 30px 25px;
+            background-color: #0f3460;
+            text-align: right;
+            border-bottom: 2px solid #393e46;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        
+        .previous-operation {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            min-height: 27px;
+            word-break: break-all;
+        }
+        
+        .current-operation {
+            color: white;
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background-color: #393e46;
+            padding: 1px;
+        }
+        
+        button {
+            border: none;
+            padding: 22px 10px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: #30475e;
+            color: white;
+            outline: none;
+        }
+        
+        button:hover {
+            background-color: #3d566e;
+            transform: scale(1.03);
+        }
+        
+        button:active {
+            transform: scale(0.97);
+            transition: transform 0.05s;
+        }
+        
+        .operator {
+            background-color: #f2a365;
+        }
+        
+        .operator:hover {
+            background-color: #f3b178;
+        }
+        
+        .equals {
+            background-color: #00adb5;
+            grid-column: span 2;
+        }
+        
+        .equals:hover {
+            background-color: #00c4cc;
+        }
+        
+        .clear {
+            background-color: #e84545;
+        }
+        
+        .clear:hover {
+            background-color: #ed5a5a;
+        }
+        
+        .number {
+            background-color: #30475e;
+        }
+        
+        .zero {
+            grid-column: span 2;
+        }
+        
+        .calculator-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background-color: #1a1a2e;
+            color: #fff;
+            border-bottom: 1px solid #393e46;
+        }
+        
+        .calculator-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .calculator-title i {
+            color: #f2a365;
+        }
+        
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+        
+        .theme-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .history-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+        }
+        
+        .history-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .history-panel {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: 300px;
+            background-color: #222831;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+            color: white;
+            transform: translateX(350px);
+            transition: transform 0.4s ease;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            z-index: 10;
+        }
+        
+        .history-panel.active {
+            transform: translateX(0);
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #393e46;
+        }
+        
+        .history-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .clear-history {
+            background-color: #e84545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+        
+        .clear-history:hover {
+            background-color: #ed5a5a;
+        }
+        
+        .history-list {
+            list-style-type: none;
+        }
+        
+        .history-item {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1rem;
+            word-break: break-all;
+        }
+        
+        .history-expression {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 3px;
+        }
+        
+        .history-result {
+            color: #00adb5;
+            font-weight: 600;
+        }
+        
+        .empty-history {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 20px 0;
+            font-style: italic;
+        }
+        
+        .calculator-footer {
+            padding: 15px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            background-color: #1a1a2e;
+            border-top: 1px solid #393e46;
+        }
+        
+        @media (max-width: 768px) {
+            .history-panel {
+                position: fixed;
+                top: 0;
+                right: 0;
+                width: 100%;
+                height: 100%;
+                border-radius: 0;
+                transform: translateX(100%);
+            }
+            
+            .history-panel.active {
+                transform: translateX(0);
+            }
+            
+            .calculator {
+                max-width: 100%;
+            }
+            
+            button {
+                padding: 20px 5px;
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            button {
+                padding: 18px 5px;
+                font-size: 1.1rem;
+            }
+            
+            .display {
+                padding: 25px 20px;
+                min-height: 140px;
+            }
+            
+            .current-operation {
+                font-size: 2.2rem;
+            }
+        }
+        
+        /* Анимации */
+        @keyframes pressEffect {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+        
+        .press-animation {
+            animation: pressEffect 0.15s ease;
+        }
+        
+        /* Светлая тема */
+        .light-theme {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        .light-theme .calculator {
+            background-color: #ffffff;
+            border-color: #e0e0e0;
+        }
+        
+        .light-theme .display {
+            background-color: #f0f0f0;
+            border-bottom-color: #e0e0e0;
+        }
+        
+        .light-theme .previous-operation {
+            color: rgba(0, 0, 0, 0.6);
+        }
+        
+        .light-theme .current-operation {
+            color: #222831;
+        }
+        
+        .light-theme .buttons {
+            background-color: #e0e0e0;
+        }
+        
+        .light-theme button {
+            background-color: #f8f8f8;
+            color: #222831;
+        }
+        
+        .light-theme button:hover {
+            background-color: #eeeeee;
+        }
+        
+        .light-theme .calculator-header,
+        .light-theme .calculator-footer {
+            background-color: #e9ecef;
+            color: #495057;
+            border-color: #e0e0e0;
+        }
+        
+        .light-theme .history-panel {
+            background-color: #ffffff;
+            color: #222831;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .light-theme .history-header {
+            border-bottom-color: #e0e0e0;
+        }
+        
+        .light-theme .history-item {
+            border-bottom-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        .light-theme .history-expression {
+            color: rgba(0, 0, 0, 0.7);
+        }
+        
+        .light-theme .history-result {
+            color: #00adb5;
+        }
+        
+        .light-theme .empty-history {
+            color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .light-theme .theme-toggle,
+        .light-theme .history-btn {
+            color: #495057;
+        }
+        
+        .light-theme .theme-toggle:hover,
+        .light-theme .history-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="calculator-header">
+            <div class="calculator-title">
+                <i class="fas fa-calculator"></i>
+                Крутой калькулятор
+            </div>
+            <div>
+                <button class="history-btn" id="historyBtn" title="История вычислений">
+                    <i class="fas fa-history"></i>
+                </button>
+                <button class="theme-toggle" id="themeToggle" title="Сменить тему">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="display">
+            <div class="previous-operation" id="previousOperation"></div>
+            <div class="current-operation" id="currentOperation">0</div>
+        </div>
+        
+        <div class="buttons">
+            <button class="clear" data-action="clear">C</button>
+            <button class="operator" data-action="backspace">
+                <i class="fas fa-backspace"></i>
+            </button>
+            <button class="operator" data-action="divide">/</button>
+            <button class="operator" data-action="multiply">×</button>
+            
+            <button class="number" data-number="7">7</button>
+            <button class="number" data-number="8">8</button>
+            <button class="number" data-number="9">9</button>
+            <button class="operator" data-action="subtract">-</button>
+            
+            <button class="number" data-number="4">4</button>
+            <button class="number" data-number="5">5</button>
+            <button class="number" data-number="6">6</button>
+            <button class="operator" data-action="add">+</button>
+            
+            <button class="number" data-number="1">1</button>
+            <button class="number" data-number="2">2</button>
+            <button class="number" data-number="3">3</button>
+            <button class="operator" data-action="percentage">%</button>
+            
+            <button class="number zero" data-number="0">0</button>
+            <button class="number" data-action="decimal">.</button>
+            <button class="equals" data-action="calculate">=</button>
+        </div>
+        
+        <div class="calculator-footer">
+            <i class="fas fa-code"></i> Создано с использованием HTML, CSS и JavaScript
+        </div>
+    </div>
+    
+    <div class="history-panel" id="historyPanel">
+        <div class="history-header">
+            <div class="history-title">
+                <i class="fas fa-history"></i> История вычислений
+            </div>
+            <button class="clear-history" id="clearHistory">Очистить</button>
+        </div>
+        <ul class="history-list" id="historyList">
+            <li class="empty-history">История вычислений пуста</li>
+        </ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Элементы калькулятора
+            const currentOperationElement = document.getElementById('currentOperation');
+            const previousOperationElement = document.getElementById('previousOperation');
+            const buttons = document.querySelectorAll('button');
+            const historyBtn = document.getElementById('historyBtn');
+            const historyPanel = document.getElementById('historyPanel');
+            const historyList = document.getElementById('historyList');
+            const clearHistoryBtn = document.getElementById('clearHistory');
+            const themeToggle = document.getElementById('themeToggle');
+            
+            // Переменные калькулятора
+            let currentOperation = '0';
+            let previousOperation = '';
+            let operation = null;
+            let waitingForNewNumber = false;
+            
+            // История вычислений
+            let calculationHistory = JSON.parse(localStorage.getItem('calculatorHistory')) || [];
+            
+            // Обновление истории на панели
+            function updateHistoryPanel() {
+                historyList.innerHTML = '';
+                
+                if (calculationHistory.length === 0) {
+                    historyList.innerHTML = '<li class="empty-history">История вычислений пуста</li>';
+                    return;
+                }
+                
+                // Показываем последние 10 вычислений
+                const recentHistory = calculationHistory.slice(-10).reverse();
+                
+                recentHistory.forEach(item => {
+                    const historyItem = document.createElement('li');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <div class="history-expression">${item.expression}</div>
+                        <div class="history-result">= ${item.result}</div>
+                    `;
+                    historyList.appendChild(historyItem);
+                });
+            }
+            
+            // Добавление записи в историю
+            function addToHistory(expression, result) {
+                calculationHistory.push({
+                    expression: expression,
+                    result: result,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Ограничиваем историю 50 записями
+                if (calculationHistory.length > 50) {
+                    calculationHistory = calculationHistory.slice(-50);
+                }
+                
+                // Сохраняем в localStorage
+                localStorage.setItem('calculatorHistory', JSON.stringify(calculationHistory));
+                
+                // Обновляем панель истории
+                updateHistoryPanel();
+            }
+            
+            // Очистка истории
+            clearHistoryBtn.addEventListener('click', function() {
+                calculationHistory = [];
+                localStorage.removeItem('calculatorHistory');
+                updateHistoryPanel();
+            });
+            
+            // Переключение темы
+            themeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('light-theme');
+                const icon = themeToggle.querySelector('i');
+                
+                if (document.body.classList.contains('light-theme')) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                    themeToggle.title = "Темная тема";
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                    themeToggle.title = "Светлая тема";
+                }
+            });
+            
+            // Открытие/закрытие панели истории
+            historyBtn.addEventListener('click', function() {
+                historyPanel.classList.toggle('active');
+                updateHistoryPanel();
+            });
+            
+            // Закрытие панели истории при клике вне её
+            document.addEventListener('click', function(event) {
+                if (!historyPanel.contains(event.target) && !historyBtn.contains(event.target)) {
+                    historyPanel.classList.remove('active');
+                }
+            });
+            
+            // Обновление дисплея
+            function updateDisplay() {
+                currentOperationElement.textContent = currentOperation;
+                previousOperationElement.textContent = previousOperation + (operation ? ` ${operation}` : '');
+                
+                // Автоматическое изменение размера шрифта для длинных чисел
+                if (currentOperation.length > 12) {
+                    currentOperationElement.style.fontSize = '2rem';
+                } else if (currentOperation.length > 8) {
+                    currentOperationElement.style.fontSize = '2.4rem';
+                } else {
+                    currentOperationElement.style.fontSize = '2.8rem';
+                }
+            }
+            
+            // Добавление числа
+            function inputNumber(number) {
+                if (waitingForNewNumber) {
+                    currentOperation = number;
+                    waitingForNewNumber = false;
+                } else {
+                    currentOperation = currentOperation === '0' ? number : currentOperation + number;
+                }
+                
+                updateDisplay();
+            }
+            
+            // Добавление десятичной точки
+            function inputDecimal() {
+                if (waitingForNewNumber) {
+                    currentOperation = '0.';
+                    waitingForNewNumber = false;
+                    updateDisplay();
+                    return;
+                }
+                
+                if (!currentOperation.includes('.')) {
+                    currentOperation += '.';
+                    updateDisplay();
+                }
+            }
+            
+            // Обработка операций
+            function handleOperation(nextOperation) {
+                // Если уже есть операция, выполняем вычисление
+                if (operation && !waitingForNewNumber) {
+                    calculate();
+                }
+                
+                const inputValue = parseFloat(currentOperation);
+                
+                if (previousOperation === '' && !isNaN(inputValue)) {
+                    previousOperation = currentOperation;
+                }
+                
+                waitingForNewNumber = true;
+                operation = nextOperation;
+                updateDisplay();
+            }
+            
+            // Вычисление
+            function calculate() {
+                let result = null;
+                const prevValue = parseFloat(previousOperation);
+                const currentValue = parseFloat(currentOperation);
+                
+                if (isNaN(prevValue) || isNaN(currentValue)) return;
+                
+                switch (operation) {
+                    case '+':
+                        result = prevValue + currentValue;
+                        break;
+                    case '-':
+                        result = prevValue - currentValue;
+                        break;
+                    case '×':
+                        result = prevValue * currentValue;
+                        break;
+                    case '/':
+                        if (currentValue === 0) {
+                            alert("Ошибка: Деление на ноль!");
+                            clearCalculator();
+                            return;
+                        }
+                        result = prevValue / currentValue;
+                        break;
+                    case '%':
+                        result = prevValue % currentValue;
+                        break;
+                    default:
+                        return;
+                }
+                
+                // Форматируем результат
+                let resultString = result.toString();
+                
+                // Округляем, если число слишком длинное
+                if (resultString.length > 12) {
+                    result = Number(result.toFixed(10));
+                    resultString = result.toString();
+                }
+                
+                // Добавляем в историю
+                addToHistory(`${previousOperation} ${operation} ${currentOperation}`, result);
+                
+                // Обновляем значения
+                previousOperation = '';
+                currentOperation = resultString;
+                operation = null;
+                waitingForNewNumber = true;
+                
+                updateDisplay();
+            }
+            
+            // Процент
+            function calculatePercentage() {
+                const currentValue = parseFloat(currentOperation);
+                if (isNaN(currentValue)) return;
+                
+                currentOperation = (currentValue / 100).toString();
+                updateDisplay();
+            }
+            
+            // Очистка калькулятора
+            function clearCalculator() {
+                currentOperation = '0';
+                previousOperation = '';
+                operation = null;
+                waitingForNewNumber = false;
+                updateDisplay();
+            }
+            
+            // Удаление последнего символа
+            function backspace() {
+                if (currentOperation.length > 1) {
+                    currentOperation = currentOperation.slice(0, -1);
+                } else {
+                    currentOperation = '0';
+                }
+                updateDisplay();
+            }
+            
+            // Обработка кликов по кнопкам
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Анимация нажатия
+                    this.classList.add('press-animation');
+                    setTimeout(() => {
+                        this.classList.remove('press-animation');
+                    }, 150);
+                    
+                    if (button.hasAttribute('data-number')) {
+                        inputNumber(button.getAttribute('data-number'));
+                    } else if (button.getAttribute('data-action') === 'decimal') {
+                        inputDecimal();
+                    } else if (button.getAttribute('data-action') === 'clear') {
+                        clearCalculator();
+                    } else if (button.getAttribute('data-action') === 'backspace') {
+                        backspace();
+                    } else if (button.getAttribute('data-action') === 'percentage') {
+                        calculatePercentage();
+                    } else if (button.getAttribute('data-action') === 'calculate') {
+                        calculate();
+                    } else {
+                        // Остальные операции (+, -, ×, /)
+                        const action = button.textContent;
+                        handleOperation(action);
+                    }
+                });
+            });
+            
+            // Обработка нажатий клавиш
+            document.addEventListener('keydown', function(event) {
+                const key = event.key;
+                
+                // Цифры
+                if (/[0-9]/.test(key)) {
+                    inputNumber(key);
+                }
+                // Десятичная точка
+                else if (key === '.' || key === ',') {
+                    inputDecimal();
+                }
+                // Операции
+                else if (key === '+') {
+                    handleOperation('+');
+                }
+                else if (key === '-') {
+                    handleOperation('-');
+                }
+                else if (key === '*') {
+                    handleOperation('×');
+                }
+                else if (key === '/') {
+                    event.preventDefault();
+                    handleOperation('/');
+                }
+                // Процент
+                else if (key === '%') {
+                    calculatePercentage();
+                }
+                // Enter или = для вычисления
+                else if (key === 'Enter' || key === '=') {
+                    event.preventDefault();
+                    calculate();
+                }
+                // Escape для очистки
+                else if (key === 'Escape' || key === 'Delete') {
+                    clearCalculator();
+                }
+                // Backspace для удаления
+                else if (key === 'Backspace') {
+                    backspace();
+                }
+            });
+            
+            // Инициализация
+            updateDisplay();
+            updateHistoryPanel();
+        });
+    </script>
+</body>
+</html>
