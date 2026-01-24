@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lotto Wheel - Telegram</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-dice"></i> Колесо Лото</h1>
+            <div id="status" class="status offline">Не подключено</div>
+        </header>
+
+        <div class="game-info">
+            <div class="info-card">
+                <h3><i class="fas fa-users"></i> Игроки</h3>
+                <div id="players-list"></div>
+            </div>
+            
+            <div class="info-card">
+                <h3><i class="fas fa-history"></i> История</h3>
+                <div id="drawn-numbers" class="numbers-history"></div>
+            </div>
+        </div>
+
+        <div class="wheel-container">
+            <div class="wheel-border">
+                <canvas id="wheelCanvas" width="300" height="300"></canvas>
+                <div class="wheel-center">
+                    <div id="currentNumber" class="current-number">?</div>
+                    <div class="current-label">Текущее число</div>
+                </div>
+                <div class="wheel-pointer">▼</div>
+            </div>
+            
+            <button id="spinButton" class="spin-button">
+                <i class="fas fa-play"></i> Крутить колесо
+            </button>
+            
+            <div class="controls">
+                <button id="connectButton" class="btn connect">
+                    <i class="fas fa-plug"></i> Подключиться
+                </button>
+                <button id="refreshButton" class="btn refresh">
+                    <i class="fas fa-sync-alt"></i> Обновить
+                </button>
+            </div>
+        </div>
+
+        <div class="last-numbers">
+            <h3><i class="fas fa-star"></i> Последние числа:</h3>
+            <div id="lastNumbers" class="last-numbers-grid"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">Выпало чисел:</span>
+                <span id="drawnCount" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Осталось:</span>
+                <span id="remainingCount" class="stat-value">99</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Статус игры:</span>
+                <span id="gameStatus" class="stat-value">-</span>
+            </div>
+        </div>
+
+        <footer>
+            <p>Lotto Game v1.0 | Подключено к Google Drive</p>
+        </footer>
+    </div>
+
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Загрузка...</p>
+    </div>
+
+    <!-- Подключаем Google Drive API -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
